@@ -9,6 +9,7 @@
 
 body {
   background-image: url("fundo.jpg");
+
   background-position: center;
   background-size: cover;
 }
@@ -47,6 +48,10 @@ select {
 
 .hide {
   display: none;
+}
+.dados p {
+  display: inline-block;
+  margin-right: 20px;
 }
 
 /* Todo Header */
