@@ -118,6 +118,27 @@ const filterTodos = (filterValue) => {
   }
 };
 
+const updateTotalCount = () => {
+  const todos = document.querySelectorAll(".todo");
+  const totalCount = todos.length;
+
+  document.getElementById("totais").innerText = totalCount;
+};
+
+const updateDoneCount = () => {
+  const doneTodos = document.querySelectorAll(".todo:not(.done)");
+  const doneCount = doneTodos.length;
+
+  document.getElementById("abertas").innerText = doneCount;
+};
+
+const updateOpenCount = () => {
+  const openTodos = document.querySelectorAll(".todo.done");
+  const openCount = openTodos.length;
+
+  document.getElementById("feitas").innerText = openCount;
+};
+
 // Eventos
 todoForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -126,6 +147,9 @@ todoForm.addEventListener("submit", (e) => {
 
   if (inputValue) {
     saveTodo(inputValue);
+    updateTotalCount();
+    updateDoneCount();
+    updateOpenCount();
   }
 });
 
@@ -136,16 +160,25 @@ document.addEventListener("click", (e) => {
 
   if (parentEl && parentEl.querySelector("h3")) {
     todoTitle = parentEl.querySelector("h3").innerText || "";
+    updateTotalCount(); // Atualiza o total ao adicionar uma nova tarefa
+    updateDoneCount(); // Atualiza as tarefas concluídas ao adicionar uma nova tarefa
+    updateOpenCount();
   }
 
   if (targetEl.classList.contains("finish-todo")) {
     parentEl.classList.toggle("done");
 
     updateTodoStatusLocalStorage(todoTitle);
+    updateTotalCount(); // Atualiza o total ao adicionar uma nova tarefa
+    updateDoneCount(); // Atualiza as tarefas concluídas ao adicionar uma nova tarefa
+    updateOpenCount();
   }
 
   if (targetEl.classList.contains("remove-todo")) {
     parentEl.remove();
+    updateTotalCount();
+    updateDoneCount();
+    updateOpenCount();
 
     // Utilizando dados da localStorage
     removeTodoLocalStorage(todoTitle);
@@ -246,5 +279,65 @@ const updateTodoLocalStorage = (todoOldText, todoNewText) => {
 
   localStorage.setItem("todos", JSON.stringify(todos));
 };
+
+// Adiciona a classe 'draggable' aos elementos .todo
+document.addEventListener("DOMContentLoaded", () => {
+  const todos = document.querySelectorAll(".todo");
+  todos.forEach((todo) => {
+    todo.setAttribute("draggable", true);
+    todo.addEventListener("dragstart", handleDragStart);
+    todo.addEventListener("dragover", handleDragOver);
+    todo.addEventListener("drop", handleDrop);
+  });
+
+  updateTotalCount(); // Atualiza o total ao carregar a página
+  updateDoneCount(); // Atualiza as tarefas concluídas ao carregar a página
+  updateOpenCount(); // Atualiza as tarefas em aberto ao carregar a página
+});
+
+function handleDragStart(e) {
+  e.dataTransfer.setData("text/plain", e.target.outerHTML);
+  e.target.classList.add("dragging");
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const draggedHTML = e.dataTransfer.getData("text/plain");
+  const draggedElement = document.createElement("div");
+  draggedElement.innerHTML = draggedHTML;
+
+  const todoList = document.getElementById("todo-list");
+
+  // Insere o elemento arrastado na posição solta
+  if (e.target.classList.contains("todo")) {
+    todoList.insertBefore(draggedElement.firstChild, e.target.nextSibling);
+  } else {
+    todoList.appendChild(draggedElement.firstChild);
+  }
+
+  // Remove a classe de arrastar do elemento original
+  document.querySelector(".dragging").classList.remove("dragging");
+
+  // Atualiza a ordem no localStorage
+  updateTodoOrderLocalStorage();
+}
+
+function updateTodoOrderLocalStorage() {
+  const todos = document.querySelectorAll(".todo");
+  const todosData = [];
+
+  todos.forEach((todo, index) => {
+    const text = todo.querySelector("h3").innerText;
+    const done = todo.classList.contains("done") ? 1 : 0;
+
+    todosData.push({ text, done, order: index });
+  });
+
+  localStorage.setItem("todos", JSON.stringify(todosData));
+}
 
 loadTodos();
