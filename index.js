@@ -341,3 +341,5 @@ function updateTodoOrderLocalStorage() {
 }
 
 loadTodos();
+filterBtn.value = "todo"; 
+filterTodos("todo");
